@@ -6,6 +6,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.movieappgazi.utils.Credentials;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -27,8 +28,8 @@ public class DetailActivity extends AppCompatActivity {
         String mOverView = bundle.getString("overview");
         double mRating = bundle.getDouble("rating");
 
-        Glide.with(this).load(mPoster).into(imageView);
-        rating_tv.setText(Double.toString(mRating));
+        Glide.with(this).load( Credentials.BASE_IMAGE_URL + mPoster).into(imageView);
+        rating_tv.setText(Double.toString(mRating) + " / 10");
         title_tv.setText(mTitle);
         overview_tv.setText(mOverView);
 
