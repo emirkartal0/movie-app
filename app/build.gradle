@@ -6,6 +6,11 @@ android {
     namespace 'com.example.movieappgazi'
     compileSdk 33
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     defaultConfig {
         applicationId "com.example.movieappgazi"
         minSdk 24
