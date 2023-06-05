@@ -1,3 +1,4 @@
+/*
 package com.example.movieappgazi;
 
 public class Movie {
@@ -27,4 +28,4 @@ public class Movie {
     public Double getRating() {
         return rating;
     }
-}
+}*/

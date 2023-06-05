@@ -5,25 +5,23 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
-import android.widget.Toast;
+import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.example.movieappgazi.models.Movie;
+import com.example.movieappgazi.request.Servicey;
+import com.example.movieappgazi.response.MovieSearchResponse;
+import com.example.movieappgazi.utils.Credentials;
+import com.example.movieappgazi.utils.MovieAPI;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private RequestQueue requestQueue;
     private List<Movie> movieList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        requestQueue = VolleySingleton.getmInstance(this).getRequestQueue();
 
         movieList = new ArrayList<>();
         fetchMovies();
@@ -44,39 +41,35 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchMovies() {
 
-        String url = "https://api.npoint.io/1dc947acd0649d8187c8";
-
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-
-                        for (int i = 0 ; i < response.length() ; i ++){
-                            try {
-                                JSONObject jsonObject = response.getJSONObject(i);
-                                String title = jsonObject.getString("title");
-                                String overview = jsonObject.getString("overview");
-                                String poster = jsonObject.getString("poster");
-                                Double rating = jsonObject.getDouble("rating");
-
-                                Movie movie = new Movie(title , poster , overview , rating);
-                                movieList.add(movie);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-
-                            MovieAdapter adapter = new MovieAdapter(MainActivity.this , movieList);
-
-                            recyclerView.setAdapter(adapter);
-                        }
-                    }
-                }, new Response.ErrorListener() {
+        MovieAPI movieAPI = Servicey.getMovieAPI();
+        Call<MovieSearchResponse> responseCall = movieAPI
+                .searchMovie(
+                        Credentials.API_KEY,
+                        "1"
+                );
+        responseCall.enqueue(new Callback<MovieSearchResponse>() {
             @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onResponse(Call<MovieSearchResponse> call, retrofit2.Response<MovieSearchResponse> response) {
+                if (response.code() == 200) {
+                    Log.v("Tag","the response " + response.body().toString());
+
+                    List<Movie> fetchedMovies = new ArrayList<>(response.body().getMovies());
+
+                    MovieAdapter movieAdapter = new MovieAdapter(MainActivity.this, fetchedMovies);
+                    recyclerView.setAdapter(movieAdapter);
+
+                    // movieList = fetchedMovies;
+                } else {
+                    Log.v("Tag", "Error " + response.errorBody().toString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MovieSearchResponse> call, Throwable t) {
+
             }
         });
 
-        requestQueue.add(jsonArrayRequest);
+
     }
 }

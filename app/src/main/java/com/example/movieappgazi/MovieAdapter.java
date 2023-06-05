@@ -2,6 +2,7 @@ package com.example.movieappgazi;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.movieappgazi.models.Movie;
+import com.example.movieappgazi.utils.Credentials;
 
 import java.util.List;
 
@@ -37,10 +40,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
     public void onBindViewHolder(@NonNull MovieHolder holder, int position) {
 
         Movie movie = movieList.get(position);
-        holder.rating.setText(movie.getRating().toString());
-        holder.title.setText(movie.getTitle());
-        holder.overview.setText(movie.getOverview());
-        Glide.with(context).load(movie.getPoster()).into(holder.imageView);
+        holder.setMovie(movie);
+        Glide.with(context)
+                .load(Credentials.BASE_IMAGE_URL + movie.getPoster_path())
+                .into(holder.imageView);
 
         holder.constraintLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -48,10 +51,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
                 Intent intent = new Intent(context , DetailActivity.class);
 
                 Bundle bundle = new Bundle();
-                bundle.putString("title" , movie.getTitle());
+                bundle.putString("title" , movie.getOriginal_title());
                 bundle.putString("overview" , movie.getOverview());
-                bundle.putString("poster" , movie.getPoster());
-                bundle.putDouble("rating" , movie.getRating());
+                bundle.putString("poster" , movie.getBackdrop_path());
+                bundle.putDouble("rating" , movie.getVote_average());
 
                 intent.putExtras(bundle);
 
@@ -80,6 +83,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
             overview = itemView.findViewById(R.id.overview_tv);
             rating = itemView.findViewById(R.id.rating);
             constraintLayout = itemView.findViewById(R.id.main_layout);
+
+            GradientDrawable gradientDrawable = new GradientDrawable();
+            gradientDrawable.setShape(GradientDrawable.RECTANGLE);
+            gradientDrawable.setCornerRadius(20f); // Yuvarlak köşelerin büyüklüğü
+            imageView.setBackground(gradientDrawable);
+
+        }
+
+        public void setMovie(Movie movie) {
+            title.setText(movie.getOriginal_title());
+            rating.setText(Double.toString(movie.getVote_average()) + "/10" );
+            overview.setText(movie.getOverview());
         }
     }
 }
