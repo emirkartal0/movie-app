@@ -11,9 +11,5 @@
         android:icon="@drawable/baseline_search_24"
         android:title="Search" />
 
-    <item
-        android:id="@+id/favorites"
-        android:icon="@drawable/baseline_favorite_24"
-        android:title="Favorites" />
 
 </menu>
