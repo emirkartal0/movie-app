@@ -9,11 +9,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
+import com.example.movieappgazi.databinding.ActivityMainBinding;
 import com.example.movieappgazi.models.Movie;
 import com.example.movieappgazi.request.Servicey;
 import com.example.movieappgazi.response.MovieSearchResponse;
+import com.example.movieappgazi.services.MovieService;
 import com.example.movieappgazi.utils.Credentials;
 import com.example.movieappgazi.utils.MovieAPI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -27,22 +30,20 @@ import retrofit2.Callback;
 
 public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
-    private List<Movie> movieList;
+    private ActivityMainBinding binding;
 
-    BottomNavigationView nav;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        recyclerView = findViewById(R.id.recyclerview);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        View view = binding.getRoot();
+        setContentView(view);
 
-        nav = findViewById(R.id.nav);
+        binding.recyclerview.setHasFixedSize(true);
+        binding.recyclerview.setLayoutManager(new LinearLayoutManager(this));
 
-        nav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+        binding.nav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
@@ -64,34 +65,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-        movieList = new ArrayList<>();
-        fetchMovies();
-
-
-    }
-
-    private void fetchMovies() {
-
-        MovieAPI movieAPI = Servicey.getMovieAPI();
-        Call<MovieSearchResponse> responseCall = movieAPI
-                .fetchMovies(
-                        Credentials.API_KEY,
-                        "1"
-                );
-        loadData(responseCall);
-    }
-
-    private void queryMovies(String q) {
-
-        MovieAPI movieAPI = Servicey.getMovieAPI();
-        Call<MovieSearchResponse> responseCall = movieAPI
-                .queryMovies(
-                        Credentials.API_KEY,
-                        q,
-                        "1"
-                );
-        loadData(responseCall);
+        loadData(MovieService.getInstance().fetchMovies());
     }
 
     private void loadData(Call<MovieSearchResponse> responseCall) {
@@ -104,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                     List<Movie> fetchedMovies = new ArrayList<>(response.body().getMovies());
 
                     MovieAdapter movieAdapter = new MovieAdapter(MainActivity.this, fetchedMovies);
-                    recyclerView.setAdapter(movieAdapter);
+                    binding.recyclerview.setAdapter(movieAdapter);
                 } else {
                     Log.v("Tag", "Error " + response.errorBody().toString());
                 }
