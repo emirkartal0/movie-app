@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.SearchView;
 import android.widget.Toast;
 
@@ -12,9 +13,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.movieappgazi.databinding.AvtivitySearchBinding;
 import com.example.movieappgazi.models.Movie;
 import com.example.movieappgazi.request.Servicey;
 import com.example.movieappgazi.response.MovieSearchResponse;
+import com.example.movieappgazi.services.MovieService;
 import com.example.movieappgazi.utils.Credentials;
 import com.example.movieappgazi.utils.MovieAPI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -31,27 +34,23 @@ public class SearchActivity extends AppCompatActivity {
 
     private List<Movie> movieList;
 
-    private RecyclerView recyclerView;
-    private SearchView searchView;
-    BottomNavigationView nav;
+    private AvtivitySearchBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.avtivity_search);
 
-        recyclerView = findViewById(R.id.recyclerview);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        binding = AvtivitySearchBinding.inflate(getLayoutInflater());
+        View view = binding.getRoot();
+        setContentView(view);
 
-        searchView = findViewById(R.id.searchView);
+        binding.recyclerview.setHasFixedSize(true);
+        binding.recyclerview.setLayoutManager(new LinearLayoutManager(this));
 
-        nav = findViewById(R.id.nav);
-
-        nav.setSelectedItemId(R.id.search);
+        binding.nav.setSelectedItemId(R.id.search);
 
         Log.d("src act","search activity cagirdik");
 
-        nav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+        binding.nav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
@@ -69,10 +68,10 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
 
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                queryMovies(query);
+                loadData(MovieService.getInstance().queryMovies(query));
                 return false;
             }
 
@@ -82,34 +81,8 @@ public class SearchActivity extends AppCompatActivity {
                 return false;
             }
         });
-
-        movieList = new ArrayList<>();
-
-
     }
 
-    private void fetchMovies() {
-
-        MovieAPI movieAPI = Servicey.getMovieAPI();
-        Call<MovieSearchResponse> responseCall = movieAPI
-                .fetchMovies(
-                        Credentials.API_KEY,
-                        "1"
-                );
-        loadData(responseCall);
-    }
-
-    private void queryMovies(String q) {
-
-        MovieAPI movieAPI = Servicey.getMovieAPI();
-        Call<MovieSearchResponse> responseCall = movieAPI
-                .queryMovies(
-                        Credentials.API_KEY,
-                        q,
-                        "1"
-                );
-        loadData(responseCall);
-    }
 
     private void loadData(Call<MovieSearchResponse> responseCall) {
         responseCall.enqueue(new Callback<MovieSearchResponse>() {
@@ -121,7 +94,7 @@ public class SearchActivity extends AppCompatActivity {
                     List<Movie> fetchedMovies = new ArrayList<>(response.body().getMovies());
 
                     MovieAdapter movieAdapter = new MovieAdapter(SearchActivity.this, fetchedMovies);
-                    recyclerView.setAdapter(movieAdapter);
+                    binding.recyclerview.setAdapter(movieAdapter);
                 } else {
                     Log.v("Tag", "Error " + response.errorBody().toString());
                 }
