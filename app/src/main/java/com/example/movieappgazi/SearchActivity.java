@@ -1,18 +1,19 @@
 package com.example.movieappgazi;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.SearchView;
 import android.widget.Toast;
 
-import com.example.movieappgazi.databinding.ActivityMainBinding;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.movieappgazi.databinding.AvtivitySearchBinding;
 import com.example.movieappgazi.models.Movie;
 import com.example.movieappgazi.request.Servicey;
 import com.example.movieappgazi.response.MovieSearchResponse;
@@ -28,20 +29,26 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 
-public class MainActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity {
 
-    private ActivityMainBinding binding;
 
+    private List<Movie> movieList;
+
+    private AvtivitySearchBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        binding = AvtivitySearchBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
 
         binding.recyclerview.setHasFixedSize(true);
         binding.recyclerview.setLayoutManager(new LinearLayoutManager(this));
+
+        binding.nav.setSelectedItemId(R.id.search);
+
+        Log.d("src act","search activity cagirdik");
 
         binding.nav.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
@@ -50,23 +57,32 @@ public class MainActivity extends AppCompatActivity {
 
                 int itemId = item.getItemId();
                 if (itemId == R.id.movies) {
-
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
-
                 } else if (itemId == R.id.search) {
-
                     Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
                     startActivity(intent);
-
                 }
 
                 return true;
             }
         });
 
-        loadData(MovieService.getInstance().fetchMovies());
+        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                loadData(MovieService.getInstance().queryMovies(query));
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                return false;
+            }
+        });
     }
+
 
     private void loadData(Call<MovieSearchResponse> responseCall) {
         responseCall.enqueue(new Callback<MovieSearchResponse>() {
@@ -77,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
                     List<Movie> fetchedMovies = new ArrayList<>(response.body().getMovies());
 
-                    MovieAdapter movieAdapter = new MovieAdapter(MainActivity.this, fetchedMovies);
+                    MovieAdapter movieAdapter = new MovieAdapter(SearchActivity.this, fetchedMovies);
                     binding.recyclerview.setAdapter(movieAdapter);
                 } else {
                     Log.v("Tag", "Error " + response.errorBody().toString());
